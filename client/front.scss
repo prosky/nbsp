@@ -1,0 +1,42 @@
+
+$border-radius: 0;
+$body-bg: #2B2B2B;
+$body-color:  #A9B7C6;
+$input-bg: #2B2B2B;
+$input-color: #A9B7C6;
+
+@import "~bootstrap";
+@import "~codemirror/lib/codemirror.css";
+@import "~codemirror/theme/darcula.css";
+
+body{
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  main{
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+table{
+  table-layout: fixed;
+  td, th{
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+}
+
+.resize{
+  resize: horizontal;
+  overflow: auto;
+}
+textarea{
+  resize: none;
+}
+.CodeMirror {
+
+  height: 100%;
+}

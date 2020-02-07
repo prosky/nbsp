@@ -1,0 +1,17 @@
+
+parameters:
+	devPort: 8099 #Zvolte port jiný pro každý projekt
+	localIp: 192.168.155.21
+	devServer: http://%localIp%:%devPort%
+	productionMode: false
+	environment: local
+	localhost: true
+
+database:
+	dsn: 'mysql:host=127.0.0.1;dbname=test'
+	user:
+	password:
+
+assets:
+	devServer: %devServer%
+	publicPath: /build/dev

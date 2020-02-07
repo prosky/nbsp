@@ -1,0 +1,12 @@
+.*
+!.gitignore
+!.rsyncignore
+!.gitattributes
+!.babelrc
+*.sh
+!*.example.sh
+vendor
+#app/config/local.neon
+node_modules
+*-lock.json
+*.lock

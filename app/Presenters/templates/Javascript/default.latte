@@ -1,0 +1,27 @@
+{block content}
+<main class="py-4">
+    <nav class="d-flex justify-content-center align-items-center">
+        <h1 class="text-center nav-item mb-0 mr-3">NBSP</h1>
+        <select name="lang" id="lang" class="form-control nav-item w-auto">
+            <option value="cs">cs</option>
+            <option value="en">en</option>
+        </select>
+    </nav>
+
+    <div class="row text-center no-gutters">
+        <div class="col">Input</div>
+        <div class="col">Output</div>
+        <div class="col">Preview (resizable)</div>
+    </div>
+    <div class="row border flex-grow-1 no-gutters mb-5">
+        <div class="col-4 border">
+            <textarea class="form-control border-0 h-100" id="input" name="input"></textarea>
+        </div>
+        <div class="col-4 border">
+            <textarea class="form-control border-0 h-100" id="output" name="output" readonly></textarea>
+        </div>
+        <div class="col-4 ">
+            <div id="preview" class="resize form-control  h-100"></div>
+        </div>
+    </div>
+</main>
