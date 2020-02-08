@@ -1,13 +1,18 @@
-
+@font-face {
+  font-family: 'Menlo';
+  font-style: normal;
+  font-weight: normal;
+  src: local('Menlo'), url('fonts/Menlo-Regular.woff') format('woff');
+}
 $border-radius: 0;
 $body-bg: #2B2B2B;
 $body-color:  #A9B7C6;
 $input-bg: #2B2B2B;
 $input-color: #A9B7C6;
 
-@import "~bootstrap";
+@import "./bootstrap";
 @import "~codemirror/lib/codemirror.css";
-@import "~codemirror/theme/darcula.css";
+@import "./one-dark.scss";
 
 body{
   min-height: 100vh;

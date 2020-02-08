@@ -13,6 +13,8 @@ let PUBLIC_PATH = '/build/dev/';
 if (DEV_SERVER) PUBLIC_PATH = `http://${DEV_HOST}:${DEV_PORT}${PUBLIC_PATH}`;
 fs.unlink(resolve(ROOT_DIR, 'temp', 'cache', '_assets'), () => null);
 console.log(PUBLIC_PATH);
+
+
 module.exports = merge(common, {
     mode: 'development',
     devtool: 'source-map',
@@ -47,11 +49,11 @@ module.exports = merge(common, {
     output: {
         path: DIST_DIR,
         publicPath: PUBLIC_PATH,
-        filename: DEV_SERVER ? '[name].js' : '[name].[hash:8].js',
-        chunkFilename: DEV_SERVER ? '[name].js' : '[name].[hash:8].js',
+        filename: DEV_SERVER ? '[name].js' : '[name].[contenthash:8].js',
+        chunkFilename: DEV_SERVER ? '[name].js' : '[name].[contenthash:8].js',
     },
     stats: {colors: true},
     plugins: [
-        DEV_SERVER ?new webpack.HotModuleReplacementPlugin():false
+        DEV_SERVER && new webpack.HotModuleReplacementPlugin()
     ].filter(Boolean),
 });

@@ -10,7 +10,7 @@ const NODE_DIR = resolve(ROOT_DIR, 'node_modules');
 const OUTPUT_DIR = resolve(WWW_DIR, 'build');
 
 module.exports = {
-    DEV_SERVER, CLIENT_DIR, ROOT_DIR, NODE_DIR,  WWW_DIR, OUTPUT_DIR,
+    DEV_SERVER, CLIENT_DIR, ROOT_DIR, NODE_DIR, WWW_DIR, OUTPUT_DIR,
     common: {
         entry: {
             front: [
@@ -22,7 +22,7 @@ module.exports = {
             modules: [
                 'node_modules'
             ],
-            extensions: ['.js', '.jsx','.scss' ,'.css'],
+            extensions: ['.js', '.jsx', '.scss', '.css'],
             alias: {
                 client: CLIENT_DIR,
             },
@@ -36,6 +36,7 @@ module.exports = {
                         CLIENT_DIR
                     ],
                     options: {
+                        cacheDirectory: true,
                         plugins: [
                             '@babel/plugin-proposal-nullish-coalescing-operator',
                             '@babel/plugin-proposal-optional-chaining',
@@ -46,26 +47,42 @@ module.exports = {
                     },
                 },
                 {
+                    test: /\.(otf|ttf|eot|svg|woff2?)(\?v=[0-9]\.[0-9]\.[0-9])?$/i,
+                    loader: 'file-loader',
+                    options: {
+                        name: 'fonts/[name].[contenthash:8].[ext]'
+                    }
+                },
+                {
                     test: /\.s?css$/,
                     use: [
-                        'style-loader',
-                        //DEV_SERVER ? 'css-hot-loader' : false,
-                        //MiniCssExtractPlugin.loader,
+                        DEV_SERVER ? 'css-hot-loader' : false,
+                        MiniCssExtractPlugin.loader,
                         {
                             loader: 'css-loader',
-                            options: { sourceMap: true },
+                            options: {sourceMap: true},
+                        },
+                        {
+                            loader: 'postcss-loader',
+                            options: {
+                                sourceMap: true,
+                                importLoaders: 1
+                            }
                         },
                         {
                             loader: 'sass-loader',
-                            options: {
-                                sourceMap: true
-                            },
+                            options: {sourceMap: true},
                         },
                     ].filter(Boolean),
-                }
+                },
+
             ],
         },
         plugins: [
+            new MiniCssExtractPlugin({
+                filename: DEV_SERVER ? '[name].css' : '[name].[contenthash:8].css',
+                //allChunks: false,
+            }),
             !DEV_SERVER ? new CleanWebpackPlugin() : false,
             new ManifestPlugin(),
         ].filter(Boolean),
