@@ -1,66 +1,45 @@
-import pretty from 'pretty';
+import beautify from 'js-beautify'
 /**  @var {CodeMirror} CodeMirror */
-import CodeMirror from 'codemirror';
-import 'codemirror/mode/xml/xml';
+import CodeMirror from 'codemirror'
+import 'codemirror/mode/xml/xml'
+import 'codemirror/addon/search/search'
+import 'codemirror/addon/search/searchcursor'
+import 'codemirror/addon/search/jump-to-line'
+import 'codemirror/addon/dialog/dialog'
+import 'codemirror/addon/dialog/dialog.css'
+import 'cm-show-invisibles'
 
-const TASKS = {
-    non_breaking_hyphen: ["@(\\w{1})-(\\w+)@ig", "$1\u2011$2"],
-    numbers: ["@(\\d) (\\d)@ig", "$1\u00A0$2"],
-    spaces_in_scales: ["@(\\d) : (\\d)@ig", "$1\u00A0:\u00A0$2"],
-    ordered_number: ["@(\\d\\.) ([0-9a-záčďéěíňóřšťúýž])@ig", "$1\u00A0$2"],
-    prepositions: ["@($|;| |&nbsp;|\\(|\\n|>)(%keys%) @ig", "$1$2\u00A0"],
-    conjunctions: ["@($|;| |&nbsp;|\\(|\\n|>)(%keys%) @ig", "$1$2\u00A0"],
-    article: ["@($|;| |&nbsp;|\\(|\\n|>)(%keys%) @ig", "$1$2\u00A0"],
-    units: ["@(\\d) (%keys%)(^|[;\\.!:]| | |\\?|\\n|\\)|<|\\010|\\013|$)@ig", "$1\u00A0$2$3"]
-};
-
-const KEYS = {
-    cs: {
-        prepositions: "do|kromě|od|u|z|ze|za|proti|naproti|kvůli|vůči|nad|pod|před|za|o|pro|mezi|přes|mimo|při|na|po|v|ve|pod|před|s|za|mezi|se|si|k|je",
-        conjunctions: "a|i|o|u",
-        abbreviations: "vč.|cca.|č.|čís.|čj.|čp.|fa|fě|fy|kupř.|mj.|např.|p.|pí|popř.|př.|přib.|přibl.|sl.|str.|sv.|tj.|tzn.|tzv.|zvl.",
-        article: false,
-        units: "m|m²|l|kg|h|°C|Kč|lidí|dní|%|mil"
-    }, en: {
-        prepositions: "aboard|about|above|across|after|against|ahead of|along|amid|amidst|among|around|are|as|as far as|as of|aside from|at|athwart|atop|be|barring|because of|before|behind|below|beneath|beside|besides|between|beyond|but|by|by means of|circa|concerning|despite|down|during|except|except for|excluding|far from|following|for|from|is|in|in accordance with|in addition to|in case of|in front of|in lieu of|in place of|in spite of|including|inside|instead of|into|like|minus|near|next to|notwithstanding|of|off|on|on account of|on behalf of|on top of|onto|opposite|out|out of|outside|over|past|plus|prior to|regarding|regardless of|save|since|than|through|throughout|till|to|toward|towards|under|underneath|unlike|until|up|upon|versus|via|with|with regard to|within|without",
-        conjunctions: "and|at|even|about|or|to",
-        article: "a|an|the",
-        units: "m|m²|l|kg|h|°C|Kč|peoples|days|moths|%|miles"
-    }
-};
-
-class Nbsp {
-
+class NbspTool {
     /**  @var {CodeMirror} inputEditor */
     inputEditor;
-
     /**  @var {CodeMirror} inputEditor */
     outputEditor;
-
+    /**  @type {{mode: string, theme: string, lineWrapping: boolean}} */
     editorOptions = {
+        showInvisibles: true,
         mode: 'xml',
-        lineWrapping: true,
+        //lineWrapping: true,
         theme: 'one-dark'
     };
-
     /**  @var {HTMLTextAreaElement} input */
     input;
     /**  @var {HTMLTextAreaElement} input */
     output;
     /**  @var {HTMLDivElement} input */
     preview;
-
-    tasks = {};
+    /**  @var {Nbsp}*/
+    nbsp;
 
     constructor(input, output, preview) {
         this.input = input;
         this.output = output;
         this.preview = preview;
+        this.nbsp = new Nbsp();
         this.init();
     }
 
     setLanguage(lang) {
-        if(lang){
+        if (lang) {
             this.lang.value = lang;
             this.preview.lang = lang;
             localStorage.setItem('lang', lang);
@@ -70,24 +49,7 @@ class Nbsp {
 
     init() {
         this.input.value = localStorage.getItem('value');
-        for (let lang of Object.keys(KEYS)) {
-            this.tasks[lang] = Object.entries(TASKS).map(([name, [regex, replacement]]) => {
-                let keys = KEYS[lang][name];
-                if (keys === false) {
-                    return false;
-                }
-                if (keys) {
-                    regex = regex.replace('%keys%', keys);
-                }
-                let matches = regex.match(/^@(?<reg>.*)@(?<flags>\w+)?$/);
-                if (matches) {
-                    let {reg, flags} = matches.groups;
-                    return [new RegExp(reg, flags), replacement]
-                } else {
-                    console.log(matches, regex);
-                }
-            }).filter(Boolean);
-        }
+
         this.inputEditor = CodeMirror.fromTextArea(input, this.getEditorOptions());
         this.inputEditor.on('keyup', this.delay(this.#onInputEditorUpdated));
         this.inputEditor.on('change', this.#onInputEditorUpdated);
@@ -124,17 +86,9 @@ class Nbsp {
         }
     };
 
-    #onInputUpdated = () => {
-        this.update();
-    };
-    #onOutputUpdated = () => {
-        this.outputEditor.setValue(this.output.value);
-    };
-
-    #onInputEditorUpdated = () => {
-        this.inputEditor.save();
-        this.update();
-    };
+    #onInputUpdated = () => this.update();
+    #onOutputUpdated = () => this.outputEditor.setValue(this.output.value);
+    #onInputEditorUpdated = () => this.inputEditor.save() || this.update();
 
     store() {
         localStorage.setItem('value', this.input.value);
@@ -142,9 +96,9 @@ class Nbsp {
 
     update() {
         this.store();
-        this.preview.innerHTML = this.input.value;
+        this.preview.innerHTML = this.input.value.replace(/\n/g,'').replace(/\s/g,' ');
         this.apply(this.preview);
-        this.output.value = pretty(this.preview.innerHTML);
+        this.output.value = beautify.html(this.preview.innerHTML);
         this.outputEditor.setValue(this.output.value);
     }
 
@@ -153,8 +107,7 @@ class Nbsp {
         /**  @var {Node} node  */
         let node;
         while (node = walker.nextNode()) {
-            console.log(node.textContent);
-            node.textContent = this.nbsp(node.textContent, this.findLang(node));
+            node.textContent = this.nbsp.replace(node.textContent, this.findLang(node));
         }
     }
 
@@ -166,21 +119,76 @@ class Nbsp {
         return (node.parentElement?.lang) || (node.parentElement.closest('[lang]')?.lang);
     }
 
+}
+
+const TASKS = {
+    short_words: ["@($|;| |&nbsp;|\\(|\\n|>)(.{1,3}) @ig", "$1$2\u00A0"],
+    non_breaking_hyphen: ["@(\\w{1})-(\\w+)@ig", "$1\u2011$2"],
+    numbers: ["@(\\d) (\\d)@ig", "$1\u00A0$2"],
+    spaces_in_scales: ["@(\\d) : (\\d)@ig", "$1\u00A0:\u00A0$2"],
+    ordered_number: ["@(\\d\\.) ([0-9a-záčďéěíňóřšťúýž])@ig", "$1\u00A0$2"],
+    abbreviations: ['@($|;| |&nbsp;|\\(|\\n|>)(%keys%) @ig', '$1$2\u00A0'],
+    prepositions: ["@($|;| |&nbsp;|\\(|\\n|>)(%keys%) @ig", "$1$2\u00A0"],
+    conjunctions: ["@($|;| |&nbsp;|\\(|\\n|>)(%keys%) @ig", "$1$2\u00A0"],
+    article: ["@($|;| |&nbsp;|\\(|\\n|>)(%keys%) @ig", "$1$2\u00A0"],
+    units: ["@(\\d) (%keys%)(^|[;\\.!:]| | |\\?|\\n|\\)|<|\\010|\\013|$)@ig", "$1\u00A0$2$3"]
+};
+
+const KEYS = {
+    cs: {
+        prepositions: "do|kromě|od|u|z|ze|za|proti|naproti|kvůli|vůči|nad|pod|před|za|o|pro|mezi|přes|mimo|při|na|po|v|ve|pod|před|s|za|mezi|se|si|k|je",
+        conjunctions: "a|i|o|u",
+        abbreviations: "vč.|cca.|č.|čís.|čj.|čp.|fa|fě|fy|kupř.|mj.|např.|p.|pí|popř.|př.|přib.|přibl.|sl.|str.|sv.|tj.|tzn.|tzv.|zvl.",
+        units: "m|m²|l|kg|h|°C|Kč|lidí|dní|%|mil"
+    }, en: {
+        prepositions: "aboard|about|above|across|after|against|ahead of|along|amid|amidst|among|around|are|as|as far as|as of|aside from|at|athwart|atop|be|barring|because of|before|behind|below|beneath|beside|besides|between|beyond|but|by|by means of|circa|concerning|despite|down|during|except|except for|excluding|far from|following|for|from|is|in|in accordance with|in addition to|in case of|in front of|in lieu of|in place of|in spite of|including|inside|instead of|into|like|minus|near|next to|notwithstanding|of|off|on|on account of|on behalf of|on top of|onto|opposite|out|out of|outside|over|past|plus|prior to|regarding|regardless of|save|since|than|through|throughout|till|to|toward|towards|under|underneath|unlike|until|up|upon|versus|via|with|with regard to|within|without",
+        conjunctions: "and|at|even|about|or|to",
+        article: "a|an|the",
+        units: "m|m²|l|kg|h|°C|Kč|peoples|days|moths|%|miles"
+    }
+};
+
+class Nbsp {
+    tasks = {};
+    constructor() {
+        this.init();
+    }
+    init() {
+        for (let lang of Object.keys(KEYS)) {
+            this.tasks[lang] = Object.entries(TASKS).map(([name, [regex, replacement]]) => {
+                let keys = KEYS[lang][name];
+                if (!keys && regex.indexOf('%keys%') !== -1) {
+                    return false;
+                }
+                if (keys) {
+                    regex = regex.replace('%keys%', keys);
+                }
+                let matches = regex.match(/^@(?<reg>.*)@(?<flags>\w+)?$/);
+                if (matches) {
+                    let {reg, flags} = matches.groups;
+                    return [new RegExp(reg, flags), replacement]
+                } else {
+                    console.log(matches, regex);
+                }
+            }).filter(Boolean);
+        }
+    }
+
     /**
      * @param {string} text
      * @param {string} lang
      */
-    nbsp(text, lang) {
+    replace(text, lang) {
         /**  @var {RegExp} regex  */
         for (let [regex, replacement] of this.tasks[lang]) {
-            console.log(text,regex, replacement);
+            console.log(text, regex, replacement);
             text = text.replace(regex, replacement);
         }
         return text;
     }
 }
 
-let nbsp = new Nbsp(
+new NbspTool(
     document.getElementById('input'),
     document.getElementById('output'),
     document.getElementById('preview')
