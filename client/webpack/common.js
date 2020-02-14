@@ -78,8 +78,8 @@ module.exports = (env = {}) => {
                     filename: DEV_SERVER ? '[name].css' : '[name].[contenthash:8].css',
                     //allChunks: false,
                 }),
-                !DEV_SERVER ? new CleanWebpackPlugin() : false,
-                env.NODE_ANALYZE ? new BundleAnalyzerPlugin() : false,
+                !DEV_SERVER && new CleanWebpackPlugin(),
+                env.NODE_ANALYZE && new BundleAnalyzerPlugin(),
                 new ManifestPlugin(),
             ].filter(Boolean),
         }

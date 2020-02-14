@@ -9,7 +9,6 @@ use Tracy;
 
 define('APP_DIR', __DIR__);
 define('ROOT_DIR', dirname(__DIR__));
-define('WWW_DIR', ROOT_DIR . '/www');
 define('SESSIONS_DIR', ROOT_DIR . '/sessions');
 define('ASSETS_DIR', WWW_DIR . '/assets');
 define('TEMP_DIR', ROOT_DIR . '/temp');

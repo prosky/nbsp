@@ -16,8 +16,8 @@ class NbspTool {
     outputEditor;
     /**  @type {{mode: string, theme: string, lineWrapping: boolean}} */
     editorOptions = {
-        mode: 'xml',
         showInvisibles: true,
+        mode: 'xml',
         //lineWrapping: true,
         theme: 'one-dark'
     };
