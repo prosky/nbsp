@@ -18,7 +18,7 @@ class NbspTool {
     editorOptions = {
         showInvisibles: true,
         mode: 'xml',
-        //lineWrapping: true,
+        lineWrapping: true,
         theme: 'one-dark'
     };
     /**  @var {HTMLTextAreaElement} input */
@@ -96,7 +96,7 @@ class NbspTool {
 
     update() {
         this.store();
-        this.preview.innerHTML = this.input.value.replace(/\n/g,'').replace(/\s/g,' ');
+        this.preview.innerHTML = this.input.value.replace(/<\/(\w+)>\n/g,'</$1> ').replace(/\s\s/g,' ');
         this.apply(this.preview);
         this.output.value = beautify.html(this.preview.innerHTML);
         this.outputEditor.setValue(this.output.value);

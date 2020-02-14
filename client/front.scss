@@ -53,6 +53,7 @@ textarea{
     margin-left: .25rem;
     vertical-align: middle;
     display: inline-block;
+    transition: transform .35s ease;
    // transform-origin: 50% 40%;
     content: '\25b2';
   }
