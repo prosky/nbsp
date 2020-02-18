@@ -27,7 +27,9 @@
     "nette/utils": "^3.0",
     "latte/latte": "v2.5.x-dev",
     "tracy/tracy": "^2.6",
-    "ext-zip": "*"
+    "ext-zip": "*",
+    "ext-dom": "*",
+    "ext-mbstring": "*"
   },
   "require-dev": {
 	  "roave/security-advisories": "dev-master",
