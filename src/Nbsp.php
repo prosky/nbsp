@@ -1,7 +1,8 @@
 <?php declare(strict_types=1);
 
-namespace App\Utils;
+namespace Prosky\Nbsp;
 
+use Nette\Utils\Json;
 use Nette\Utils\Strings;
 
 
@@ -16,18 +17,19 @@ class Nbsp
 		self::CZECH_LOCALE
 	];
 
+
 	public const EMPTY = '(^|$|;| |&nbsp;|\\(|\\n|>)';
 	public const TASKS = [
-		'short_words' => ['@%empty%(.{1,3}) @ig', "$1$2\u00A0"],
-		'non_breaking_hyphen' => ["@(\\w{1})-(\\w+)@ig", "$1\u2011$2"],
-		'numbers' => ["@(\\d) (\\d)@ig", "$1\u00A0$2"],
-		'spaces_in_scales' => ["@(\\d) : (\\d)@ig", "$1\u00A0:\u00A0$2"],
-		'ordered_number' => ["@(\\d\\.) ([0-9a-záčďéěíňóřšťúýž])@ig", "$1\u00A0$2"],
-		'abbreviations' => ['@%empty%(%keys%) @ig', '$1$2\u00A0'],
-		'prepositions' => ['@%empty%(%keys%) @ig', "$1$2\u00A0"],
-		'conjunctions' => ['@%empty%(%keys%) @ig', "$1$2\u00A0"],
-		'article' => ['@%empty%(%keys%) @ig', "$1$2\u00A0"],
-		'units' => ["@(\\d) (%keys%)(^|[;\\.!:]| | |\\?|\\n|\\)|<|\\010|\\013|$)@ig", "$1\u00A0$2$3"]
+		'short_words' => ['@%empty%(.{1,3}) @i', "$1$2\xc2\xa0"],
+		'non_breaking_hyphen' => ['@(\\w{1})-(\\w+)@i', "$1\xE2\x80\x91$2"],
+		'numbers' => ['@(\\d) (\\d)@i', "$1\xc2\xa0$2"],
+		'spaces_in_scales' => ['@(\\d) : (\\d)@i', "$1\xc2\xa0:\xc2\xa0$2"],
+		'ordered_number' => ['@(\\d\\.) ([0-9a-záčďéěíňóřšťúýž])@i', "$1\xc2\xa0$2"],
+		'abbreviations' => ['@%empty%(%keys%) @i', "$1$2\xc2\xa0"],
+		'prepositions' => ['@%empty%(%keys%) @i', "$1$2\xc2\xa0"],
+		'conjunctions' => ['@%empty%(%keys%) @i', "$1$2\xc2\xa0"],
+		'article' => ['@%empty%(%keys%) @i', "$1$2\xc2\xa0"],
+		'units' => ['@(\\d) (%keys%)(^|[;\\.!:]| | |\\?|\\n|\\)|<|\\010|\\013|$)@i', "$1\xc2\xa0$2$3"]
 	];
 
 	public const KEYS = [
@@ -58,6 +60,8 @@ class Nbsp
 				$regex = str_replace('%empty%', self::EMPTY, $regex);
 				if (isset(self::KEYS[$LOCALE], self::KEYS[$LOCALE][$key])) {
 					$regex = str_replace('%keys%', self::KEYS[$LOCALE][$key], $regex);
+				} elseif (strpos($regex, '%keys%') !== false) {
+					continue;
 				}
 				$this->tasks[$LOCALE][$key] = [$regex, $replacement];
 			}
@@ -67,8 +71,8 @@ class Nbsp
 	public function nbsp(string $content, string $locale = self::CZECH_LOCALE): string
 	{
 		$content = self::spacelessText($content);
-		foreach ($this->tasks[$locale] as $key => $TASK) {
-			$content = Strings::replace($content, ...$TASK);
+		foreach ($this->tasks[$locale] as $key => [$regex, $replacement]) {
+			$content = preg_replace($regex, $replacement, $content);
 		}
 		return trim($content);
 	}
@@ -83,4 +87,11 @@ class Nbsp
 		return preg_replace('#[ \t\r\n]+#', ' ', $text);
 	}
 
+	/**
+	 * @return array
+	 */
+	public function getTasks(): array
+	{
+		return $this->tasks;
+	}
 }

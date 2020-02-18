@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace App\Utils;
+namespace Prosky\Nbsp;
 
 use DOMXPath;
 use DOMDocument;
